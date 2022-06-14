@@ -7,11 +7,10 @@ const bip39 = require("bip39");
 const StandardBEP20 = require("../build/contracts/StandardBEP20.json");
 const BurnableBEP20 = require("../build/contracts/BurnableBEP20.json");
 
-const SNRT_TOKEN_CONTRACT_ADDRESS =
-  "0x710d0a49a7cc64ab42f39ad01b36aac305038466";
-
-const BSTDGT_TOKEN_CONTRACT_ADDRESS =
-  "0xdB96c4a5fe9aDf512f8C0EdcE5A985310AeEEa09";
+const contracts = {
+  SNRT: "0x710d0a49a7cc64ab42f39ad01b36aac305038466",
+  BSTDGT: "0xdB96c4a5fe9aDf512f8C0EdcE5A985310AeEEa09",
+};
 
 const Web3Provider = new Web3(Web3.givenProvider || "http://127.0.0.1:7545");
 Contract.setProvider(Web3.givenProvider || "http://127.0.0.1:7545");
@@ -79,10 +78,7 @@ function init(app) {
         .json({ status: "error", message: "Address cannot be same" });
     }
 
-    const BEP20 = new Contract(
-      BurnableBEP20.abi,
-      BSTDGT_TOKEN_CONTRACT_ADDRESS
-    );
+    const BEP20 = new Contract(BurnableBEP20.abi, contracts["BSTDGT"]);
 
     let result;
     try {
@@ -107,16 +103,11 @@ function init(app) {
     const { amount, privateKey } = req.body;
     const { address } = loadWalletWithPrivateKey(privateKey);
 
-    const BEP20 = new Contract(
-      BurnableBEP20.abi,
-      BSTDGT_TOKEN_CONTRACT_ADDRESS
-    );
+    const BEP20 = new Contract(BurnableBEP20.abi, contracts["BSTDGT"]);
 
     let result;
     try {
-      result = await BEP20.methods
-        .burn(address, amount)
-        .send({ from: address });
+      result = await BEP20.methods.burn(amount).send({ from: address });
     } catch (error) {
       console.error(JSON.stringify(error, null, 2));
       const errors = [];
@@ -128,7 +119,7 @@ function init(app) {
         .json({ status: "error", message: errors[0].reason });
     }
 
-    return res.status(200).json({ status: "success /send-token", result });
+    return res.status(200).json({ status: "success /burn-token", result });
   });
 
   app.post(path + "/register", async (req, res) => {
@@ -152,22 +143,22 @@ function init(app) {
     const allBalance = await Promise.all([
       checkTokenBalance(
         BurnableBEP20.abi,
-        BSTDGT_TOKEN_CONTRACT_ADDRESS,
+        contracts["BSTDGT"],
         account.address
       ),
-      checkTokenBalance(
-        StandardBEP20.abi,
-        SNRT_TOKEN_CONTRACT_ADDRESS,
-        account.address
-      ),
+      checkTokenBalance(StandardBEP20.abi, contracts["SNRT"], account.address),
     ]);
 
+    const response = {};
+    allBalance.forEach((element) => {
+      response[element.symbol] = element.balance;
+    });
+
     return res.status(200).json({
-      status: "success /create-wallet",
+      status: "success /get-balance",
       balance: {
         ETH: balanceInEther,
-        [allBalance[0].symbol]: allBalance[0].balance,
-        [allBalance[1].symbol]: allBalance[1].balance,
+        ...response,
       },
     });
   });
