@@ -1,0 +1,26 @@
+{
+  "name": "bep20-token-truffle",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start:legacy-provider": "export NODE_OPTIONS=--openssl-legacy-provider && nodemon index.js localhost 8080",
+    "start": "nodemon index.js localhost 8080"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@openzeppelin/test-helpers": "^0.5.15",
+    "bip39": "^3.0.4",
+    "body-parser": "^1.20.0",
+    "dotenv": "^16.0.1",
+    "ethereumjs-wallet": "^1.0.2",
+    "express": "^4.18.1",
+    "nodemon": "^2.0.16",
+    "web3": "^1.7.3"
+  }
+}
